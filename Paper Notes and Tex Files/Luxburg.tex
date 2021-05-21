@@ -81,12 +81,6 @@ It turns out that Ratiocut can be reasonably approximated for any number of desi
 \subsubsection{Popular Spectral Clustering Methods}
 These manipulations are the spectral clustering algorithms, a few of which are the following:
 
-\begin{figure}
-  \includegraphics[width=\linewidth]{unnormsc.PNG}
-  \caption{A boat.}
-  \label{fig:boat1}
-\end{figure}
-
 \subsubsection{Random Walks and Clustering on Probability}
 
 Instead of clustering on some property of cuts, instead say that we wish to cluster on the basis of probability. We wish to partition our graph such that a random walk will spend a lot of time in a certain cluster before moving to the next. Simply define the transition probability from one state to the next to be proportional to the weight of the edge between two vertices. A transition matrix of these probabilities is: $$P = D^{-1}W$$, which looks very similar to how we defined the normalized symmetric graph Laplacian, as $L_{rw} = I - D^{-1}W = I -P$. Our strategy for clustering based on this matrix is similar to that for graph Laplacians, where we simply compute the eigenvectors to determine cluster properties of this graph. 
