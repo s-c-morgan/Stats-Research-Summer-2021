@@ -1,0 +1,71 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{mathtools}
+
+\title{Stats Template}
+\author{Carlyle Morgan}
+\date{May 2021}
+
+\begin{document}
+\section{Casella: An Introduction to Empirical Bayes Data Analysis}
+\subsection{Introduction}
+\begin{itemize}
+\item In a parametric approach to empirical Bayesian inference, the parametric family of prior distributions is specified. In a non-parametric approach, no prior is specified.
+\item Efron and Morris in the 1970s laid the groundwork for modern empirical Bayesian analysis.
+\end{itemize}
+\subsection{Empirical Bayes Estimators for the Normal Case}
+
+Say we are trying to estimate the sampling distribution of a population from which we have drawn $p$ random variables with cell means $X_i$, each with a normal distribution with different means and known variance. Let $\theta_i$ be the true means of each of these cells.: 
+\begin{itemize}
+    \item The Classical school argues that the observed mean of the data is the best estimator of the mean, that $X_i$ best estimates $\theta_i$.
+    \item The Bayesian school assumes a normal prior, and computes a Bayesian estimate which is the mean of the normal posterior. This estimate is a weighted function of the observed and prior means, favoring one or the other depending on how large the sample and prior variance is. As sample variance grows larger, more weight is put upon the prior mean in determining this estimate.
+\end{itemize}
+
+The empirical Bayesian disagrees in some way with both of these approaches. The empirical Bayesian does not specify any values of the mean or variance for the posterior normal. Instead, these values are estimated using parameters from the data. This information is contained in the marginal distribution, $f(X_i)$, that is unconditional on $\theta_i$, the parameter of interest. 
+
+By substituting in these estimates, a new empirical Bayesian estimator of $\theta_i$ is constructed. This new estimate takes into account information from each of the $X_i$s when approximating $\theta_i$. This is good because of the \textbf{Stein effect}, which states that all estimates can be improved by using information from all coordinates when estimating each coordinate. 
+
+The Stein effect is illustrated in how the empirical Bayesian estimator has smaller Mean Squared Error in estimating $\theta_i$ than the classical estimator for all values of $X_i$.
+
+\subsection{Empirical Bayes Intuition}
+
+For five cells, say we wish to test if the cells have equivalent means. Let $X_i$ denote the observed means of these cells and $\theta_i$ denote the true means of these cells. We can construct $H_0$ such that if all means are equal, each cell's mean should be best estimated by the average mean of all cells. Alternatively, if the cells do not have equal means, the true mean of each individual cell would be best estimated by simply using the sample mean of that cell.
+
+The empirical Bayesian approach allows for one to remain non-committal in anticipation of future evidence. It assumes the plausibility of both strategies, and uses the T-statistic calculated from testing $H_0$ to decide whether or not to weight $X_i$ or $\bar X$ more in estimating $\theta_i$. For example, for larger T statistics, $H_0$ seems increasingly implausible, and so the Bayesian empirical estimate weights the $\bar X_i$ estimation strategy less in its estimates. 
+
+\subsection{More Properties of Empirical Bayesian Estimates }
+
+\begin{itemize}
+\item One can use the observed distribution obtained by the Empirical Bayesian estimates of the Bayes estimates to try and determine a true prior distribution. For example, if one finds that a distribution of happy and sad feelings in a population is u-shaped, with the majority of people either very happy or very sad, one can use this to update priors in future studies.
+\end{itemize}
+
+
+\section{Gelman: Objections to Bayesian Statistics}
+\subsection{A Bayesian’s attempt to see the other side}
+According to Gelman:
+\begin{itemize}
+\item \textbf{Bayesian inference} represents statistical estimation as the conditional distribution of parameters and unobserved data, given observed data.
+\item \textbf{Bayesian statisticians} are those who would apply Bayesian methods to \textit{all} problems.
+\item "Anti-Bayesians" avoid using Bayesian methods and object to their use by others
+\end{itemize}
+\subsection{Overview of the objections}
+Gelman outlines a few main objections:
+\begin{enumerate}
+\item Bayesian inference is an "automatic inference machine" as opposed to a more careful process-specific approach. The goal of inference should be to provide reasonable answers with a minimal number of assumptions. 
+\item Bayesian analysis relies too much on subjectivity, as there exists few ways to properly assess the validity of subjective knowledge.
+\item The "key" topics of modern statistics are being shirked in favor of the computational Bayes approach.
+\end{enumerate}
+\subsection{Further possible objections}
+Writing in the voice of the "Anti-Bayesian", Gelman argues:
+\begin{itemize}
+\item There exist no objective best practices to the subjective process of prior selection.
+\item Making Bayesian analysis accessible to natural scientists and political scientists is only furthering its misuse.
+\item Unbiasedness and convergence are more important than the main results of Bayesian analysis.
+\item Multilevel and hierarchical models only work to confirm existing biases in the Bayesian's initial assumptions.
+\item Assumptions about "exchangeablity" in Bayesian work on political science don't work 
+\end{itemize}
+
+
+
+\end{document}
