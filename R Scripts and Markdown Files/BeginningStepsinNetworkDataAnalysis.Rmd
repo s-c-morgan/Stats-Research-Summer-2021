@@ -1,0 +1,95 @@
+---
+title: 'Beginning Steps in Network Data Analysis: Understanding Crossposting between
+  Reddit Communities'
+author: "Carlyle Morgan"
+output: pdf_document
+---
+
+## Introduction
+
+The Stanford Network Analysis Project(SNAP) hosts a dataset that contains information about reddit 'crossposting', in which a post on one subcommunity(or 'Subreddit') of the site posts a hyperlink to another subcommunity of the site. According to SNAP, the Reddit data is formatted such that "each hyperlink is annotated with three properties: the timestamp, the sentiment of the source community post towards the target community post, and the text property vector of the source post. The network is directed, signed, temporal, and attributed". From these attributes, one can understand 
+
+## Cleaning
+```{r setup}
+library(igraph)
+library(dplyr)
+library(stringr)
+
+rh<-read.csv("C:/Users/sc_mo/Documents/R/Projects/Stats Research/reddithyperlinks.tsv", sep = "\t")
+```
+
+
+```{r}
+g.rh<- graph.data.frame(rh)
+is.simple(g.rh)
+##Weight according to the number of connected edges 
+g.rh<-as.undirected(g.rh, mode = 'collapse')
+E(g.rh)$weight<-1
+g.rh.weighted<-simplify(g.rh)
+```
+## Exploratory Data Analysis
+
+### Overall Edge and Vertex Summary Statistics
+
+Having simplified and applying weighting to our network, it might be helpful to explore the relationship between the degrees and strength of our verticies. 
+
+Which subreddits have the greatest number of instances of starting and receiving crossposts? This is concerned with how we decided to weight each edge, and thus nodes with greater summed weights have   
+
+
+```{r}
+head(sort(graph.strength(g.rh.weighted), decreasing=TRUE),25)
+head(sort(degree(g.rh.weighted), decreasing=TRUE),25)
+```
+
+```{r}
+hist(graph.strength(g.rh.weighted), col="red", xlab="Vertex Strength", 
+     ylab="Frequency",
+     xlim = c(0,200), breaks = seq(0,10000,by=10))
+hist(degree(g.rh.weighted), col="blue", xlab="Vertex Degree", 
+     ylab="Frequency", xlim = c(0,200), breaks = seq(0,10000,by=10))
+```
+
+```{r}
+d.rh <- degree(g.rh.weighted)
+dd.rh <- degree.distribution(g.rh.weighted)
+d <- 1:max(d.rh)-1
+ind <- (dd.rh != 0)
+plot(d[ind], dd.rh[ind], log="xy", col="purple", xlab=c("Log-Degree"), ylab=c("Log-Intensity"), main="Log-Log Degree Distribution")
+```
+
+### Component Analysis
+
+
+```{r}
+is.connected(g.rh.weighted)
+parts<-decompose.graph(g.rh.weighted)
+table(sapply(parts, vcount))
+```
+
+There is clearly the presence of a giant component in this data. 
+
+```{r}
+vcount(g.rh.weighted)
+g.rh.weighted<-decompose.graph(g.rh.weighted)[[1]]
+vcount(g.rh.weighted)
+is.connected(g.rh.weighted)
+```
+
+```{r}
+g.rh.weighted<-delete_vertices(g.rh.weighted, degree(g.rh.weighted) <= 100)
+```
+
+```{r}
+average.path.length(g.rh.weighted)
+```
+With such a small average path length, 
+
+
+## Hierarchical Clustering and Graph Partitioning
+
+
+```{r}
+greedy_rh<-fastgreedy.community(g.rh.weighted)
+sizes(greedy_rh)
+plot(greedy_rh,g.rh.weighted, asp = 0, vertex.size = 5, vertex.label.cex = 0.8, vertex.label=NA)
+```
