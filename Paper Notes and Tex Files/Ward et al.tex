@@ -1,0 +1,86 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{mathtools}
+
+\title{Stats Template}
+\author{Carlyle Morgan}
+\date{May 2021}
+
+\begin{document}
+
+\section{Ward, Huang, Davison, and Zheng: Next Waves in Veridical Network Embedding}
+
+\subsection{Introduction}
+
+The latest and greatest techniques in statistical and machine learning analysis require data to be represented in some sort of Euclidean space. For networked data, one has to "embed" such data into a space in order to perform these techniques. How we undergo this process should consider the following questions:
+\begin{itemize}
+\item  Do we have a certain space that we want to use?
+\item  Should certain features of our network data be preserved in our embedded space and how do we check if they are preserved?
+\item What are we intending to use this space for?
+\end{itemize}
+
+\subsection{Problem Setup}
+For the standard network notation $G = (V,E)$ for a network with $n$ nodes and a set of $E$ edges, consider this network to have $m$ other covariates associated with each node, as well as possible similar features for each edge. We wish to map the information from our network into some representation space, $Z$, with associated metric $\rho$, a mapping such that $\phi : G \times X \to (Z, \rho)$, where $X$ is the vector of m other covariates.
+
+\subsubsection{Choosing a representation space}
+
+The most popular choice for a representation space(in this case $Z$) would be a Euclidean space of dimension $d$, where $d<<n$. Other representation spaces such as $d$-dimensional spheres or the hyperbolic space are possible. Hyperbolic spaces may be especially useful in capturing possible tree-like structures. 
+
+\subsubsection{Choosing what features should remain preserved}
+
+If we wish to study properties relating to communities in our networked data, clearly the embedding function should preserve community structure. Nodes in the same community should be embedded "closer" to each other according to our metric. There are many ways to capture proximity in an embedding:
+
+\begin{enumerate}
+\item First order proximity: If two nodes share an edge with high weight, they will have high first order proximity
+\item Second order proximity: If two nodes share edges with many of the same nodes, they will have high second order proximity even if they do not share an edge
+\item k-step transition probability: The weights on edges are seen to be the transition probabilities between states in a random walk. If there is a high transition probability between nodes, they should be closer in our embedding
+\item Homophily: Prioritizes that people of the same community should be embedded closer together
+\item Nodal proximity: Like other measures of proximity but grouped based on similarities in nodal covariates
+\end{enumerate}
+
+\subsubsection{Measuring similarity in the representation space}
+
+Similarity in the network space and similarity in the representation space need not be equivalent. If the embedding space is a metric space, the intuitive choice to measure similarity is simply to use the representation space's distance measure. Things like the dot product or other geometric manipulations of the similarity metric from the network space can also be used as measures of similarity in the representation space.
+
+\subsection{Representational Learning of Networks}
+
+\subsubsection{Learning the representation}
+
+So how do we actually go about preserving the things we want to preserve in the representation space? 
+
+For unsupervised representation learning, our goal should be to match similarities between the original network and the representation space. We can construct different loss functions with different weights that allow us to choose what measures of similarity we wish to preserve. "Reconstruction loss" functions set up the embedding process as the minimization of some loss function, where the loss functions are some product of the differences in similarity between the network and its representation. For probabilistic generation processes, representations can be constructed by maximizing the likelihood function.
+
+For supervised and semi-supervised learning, representation can focus on things like nodal covariates and labeling. We can include some sort of penalty for mislabeling in our loss function in addition to our loss metrics based on differences on proximity between network data and its representation. 
+
+
+\subsubsection{Assessing the representation}
+
+In addition to assessing the quality of representation using measures about reconstruction, measures regarding other later inferential techniques can be used. If we want to engage in node classification, link prediction, or clustering, our representation should change to reflect this. 
+
+\subsection{Review of Representative Methods}
+
+\subsubsection{Spectral Clustering}
+
+In spectral clustering, a representation of the network is constructed using the eigenvectors from the spectral decomposition of the graph Laplacian. Spectral clustering is very popular, and exhibits helpful properties like consistent recovery of network communities, possible underling latent spaces, and other nice consistency properties. The issues with this approach is that it is inaccurate in the presence of outliers and is often computationally intensive.
+
+\subsubsection{Latent space models}
+
+Latent space models argue that the ground truth adjacency matrix is actually in a lower-dimensional latent space, and just needs to be estimated. Things like MCMC and variational inference are used to estimate clustering in the latent space. These techniques are also prohibitively computationally intensive. 
+
+\subsubsection{Machine Learning Methods}
+
+Computationally less intensive models from the ML community can also be outfitted for representational purposes. Models like Deepwalk and Node2vec are popular examples.
+
+\subsection{Veridical network embedding}
+How we actually decide which of these representative methods to use should take into account:
+\begin{itemize}
+\item Predictability: Using a simple metric to see how well our model represents relationships in the original data in terms of a prediction target.
+\item Computability: Can this technique be scaled for use in much larger networks? What might we have to give up as we increase network size and how computationally intensive will our method be?
+\item Stability: Is our representation immune to possibly errors or perturbations?
+\end{itemize}
+
+
+
+
+\end{document}
