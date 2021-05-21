@@ -2,10 +2,13 @@
 \usepackage[utf8]{inputenc}
 \usepackage{amsmath}
 \usepackage{mathtools}
+\usepackage{graphicx}
 
 \title{Stats Template}
 \author{Carlyle Morgan}
 \date{May 2021}
+\graphicspath{{../ImageFiles}}
+
 
 \begin{document}
 
@@ -78,6 +81,12 @@ It turns out that Ratiocut can be reasonably approximated for any number of desi
 \subsubsection{Popular Spectral Clustering Methods}
 These manipulations are the spectral clustering algorithms, a few of which are the following:
 
+\begin{figure}
+  \includegraphics[width=\linewidth]{unnormsc.PNG}
+  \caption{A boat.}
+  \label{fig:boat1}
+\end{figure}
+
 \subsubsection{Random Walks and Clustering on Probability}
 
 Instead of clustering on some property of cuts, instead say that we wish to cluster on the basis of probability. We wish to partition our graph such that a random walk will spend a lot of time in a certain cluster before moving to the next. Simply define the transition probability from one state to the next to be proportional to the weight of the edge between two vertices. A transition matrix of these probabilities is: $$P = D^{-1}W$$, which looks very similar to how we defined the normalized symmetric graph Laplacian, as $L_{rw} = I - D^{-1}W = I -P$. Our strategy for clustering based on this matrix is similar to that for graph Laplacians, where we simply compute the eigenvectors to determine cluster properties of this graph. 
@@ -86,9 +95,7 @@ Shi and Malik(2001) prove that though we did not even think about any sort of me
 
 \subsubsection{Perturbation Theory}
 
-Perturbation theory is studying how eigenvalues and eigenvectors of a matrix change under the presence of some small perturbation. For some original matrix $A$, consider some perturbation $H$. Thus, the perturbed matrix, $A_p$ is $A_p = A + H$. 
-
-Perturbation theory can be used to identify a few problems with the spectral clustering algorithms described earlier. In instances where there exist some degree of between-cluster similarity, the popular algorithms will no longer provide perfect results. More specifically, the indicator vector output will no longer be ideal, no longer perfectly placing 1s and 0s in the indicator vector that indicates cluster membership for each point. Under sufficiently large perturbations, the k-means algorithm may have some issue separating groups of eigenvectors from each other.
+Perturbation theory studies how eigenvalues and eigenvectors of a matrix change under the presence of some small perturbation. For some original matrix $A$, consider some perturbation matrix $H$. Thus, the perturbed matrix, $A_p$ is $A_p = A + H$.  Observed network data can be seen as $A_p$, and the object of our analysis is to work the matrix back to $A$, where $A$ contains the "true" communities in the data with minimal connections outside of these communities. This provides the framework for a different conceptual approach to the clustering process.
 
 
             
