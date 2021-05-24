@@ -1,0 +1,117 @@
+---
+title: "Undirected Spectral Clustering Examples"
+author: "Carlyle Morgan"
+date: "5/24/2021"
+output: pdf_document
+---
+
+```{r setup, results='hide', message=FALSE}
+library(igraph)
+library(dplyr)
+library(stringr)
+library(readr)
+library(stats)
+```
+
+
+## Introduction
+
+This dataset illustrates collaboration efforts between various academics in undirected network form. There are 86 distinct authors and 124 edges, each weighted by the number of collaborations between each of the authors.
+
+## Preprocessing
+Importing the dataset and reordering the to and from columns:
+```{r, message=FALSE}
+authors <- read_table2("C:/Users/sc_mo/Documents/R/Projects/Stats Research/ca-sandi_auths.csv")
+auth_temp<-authors$node1
+authors$node1<-authors$node2
+authors$node2<-auth_temp
+authlist<- unique(c(authors$node1, authors$node2))
+```
+
+Calling the network data into igraph and applying the edge weights as provided by the dataset:
+```{r, message=FALSE}
+g.authors<- graph.data.frame(authors[1:2], vertices = authlist, directed = FALSE)
+E(g.authors)$weight<-authors$weight
+set.seed(123)
+plot(g.authors)
+```
+
+Checking for connected components and simplicity:
+```{r, message=FALSE}
+is.simple(g.authors)
+is.connected(g.authors)
+```
+
+
+
+## Creating the Necessary Laplacian Components
+
+
+
+Creating the weighted(W) and unweighted(A) adjacency matrices:
+```{r, message=FALSE}
+A<-get.adjacency(g.authors)
+A<-as.matrix(A)
+W<-A
+for (i in 1:nrow(authors)){
+  W[as.character(authors$node1[i]), as.character(authors$node2[i])]<-authors$weight[i]
+  W[as.character(authors$node2[i]), as.character(authors$node1[i])]<-authors$weight[i]
+}
+```
+
+Creating the degree matrix(D):
+```{r, message=FALSE}
+D<-diag(strength(g.authors))
+```
+
+## Generating the Laplacian Matrices:
+
+Creating the unnormalized Laplacian Matrix, $L_{un} = D - W$:
+```{r, message=FALSE}
+L_unnorm<-D-W
+```
+
+Creating the normalized symmetric Laplacian Matrix, $L = I - D^{-1/2}WD^{-1/2}$:
+
+Creating the normalized random walk Laplacian Matrix, $ L = I - D^{-1}W$
+
+## Unnormalized Spectral Clustering
+
+Calculating the eigenvectors of $L_{un}$:
+```{r}
+evL <- eigen(L_unnorm, symmetric=TRUE)
+```
+
+Creating a simple plot of the eigenvalues:
+```{r, message=FALSE, warning=FALSE}
+plot(1:10,rev(evL$values)[1:10], log="y")
+abline(v=3.5, col="red", lty=3)
+abline(v=6.5, col="blue", lty=2)
+```
+
+### Clustering with k=2 clusters:
+```{r}
+k   <- 2
+Z   <- evL$vectors[,(ncol(evL$vectors)-k+1):ncol(evL$vectors)]
+
+km <- kmeans(Z, centers=k, nstart=5)
+V(g.authors)$cluster<-km$cluster
+V(g.authors)[cluster == 1]$color<-"red"
+V(g.authors)[cluster == 2]$color<-"dodgerblue"
+set.seed(123)
+plot(g.authors)
+```
+
+### Clustering with k=3 clusters:
+```{r}
+k   <- 3
+Z   <- evL$vectors[,(ncol(evL$vectors)-k+1):ncol(evL$vectors)]
+
+km <- kmeans(Z, centers=k, nstart=5)
+V(g.authors)$cluster<-km$cluster
+V(g.authors)[cluster == 1]$color<-"red"
+V(g.authors)[cluster == 2]$color<-"dodgerblue"
+V(g.authors)[cluster == 3]$color<-"yellow"
+set.seed(123)
+plot(g.authors)
+```
