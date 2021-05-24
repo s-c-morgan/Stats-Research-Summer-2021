@@ -2,6 +2,7 @@ library(igraph)
 library(dplyr)
 library(stringr)
 library(readr)
+library(stats)
 
 
 authors <- read_table2("ca-sandi_auths.csv")
@@ -18,8 +19,38 @@ plot(g.authors)
 A<-get.adjacency(g.authors)
 A<-as.matrix(A)
 D<-diag(strength(g.authors))
-U<-D-A
 
+W<-A
+for (i in 1:nrow(authors)){
+  W[as.character(authors$node1[i]), as.character(authors$node2[i])]<-authors$weight[i]
+  W[as.character(authors$node2[i]), as.character(authors$node1[i])]<-authors$weight[i]
+}
+
+L_unnorm<-D-W
+
+plot(1:10,rev(evL$values)[1:10], log="y")
+abline(v=2.25, col="red", lty=3)
+
+k   <- 2
+evL <- eigen(L_unnorm, symmetric=TRUE)
+Z   <- evL$vectors[,(ncol(evL$vectors)-k+1):ncol(evL$vectors)]
+
+km <- kmeans(Z, centers=k, nstart=5)
+V(g.authors)$cluster<-km$cluster
+V(g.authors)[cluster == 1]$color<-"red"
+V(g.authors)[cluster == 2]$color<-"dodgerblue"
+plot(g.authors)
+
+k   <- 3
+evL <- eigen(L_unnorm, symmetric=TRUE)
+Z   <- evL$vectors[,(ncol(evL$vectors)-k+1):ncol(evL$vectors)]
+
+km <- kmeans(Z, centers=k, nstart=5)
+V(g.authors)$cluster<-km$cluster
+V(g.authors)[cluster == 1]$color<-"red"
+V(g.authors)[cluster == 2]$color<-"dodgerblue"
+V(g.authors)[cluster == 3]$color<-"yellow"
+plot(g.authors)
 
 
 
