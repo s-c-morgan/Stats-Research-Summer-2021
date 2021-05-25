@@ -11,6 +11,7 @@ library(dplyr)
 library(stringr)
 library(readr)
 library(stats)
+library(expm)
 ```
 
 
@@ -72,8 +73,14 @@ L_unnorm<-D-W
 ```
 
 Creating the normalized symmetric Laplacian Matrix, $L = I - D^{-1/2}WD^{-1/2}$:
+```{r, message=FALSE}
+L_normsym<-D-W
+```
 
 Creating the normalized random walk Laplacian Matrix, $ L = I - D^{-1}W$
+```{r, message=FALSE}
+L_normrw<-D-W
+```
 
 ## Unnormalized Spectral Clustering
 

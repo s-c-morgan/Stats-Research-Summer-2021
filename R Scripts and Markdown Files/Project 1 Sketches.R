@@ -29,10 +29,9 @@ for (i in 1:nrow(authors)){
 L_unnorm<-D-W
 
 plot(1:10,rev(evL$values)[1:10], log="y")
-abline(v=2.25, col="red", lty=3)
+evL <- eigen(L_unnorm, symmetric=TRUE)
 
 k   <- 2
-evL <- eigen(L_unnorm, symmetric=TRUE)
 Z   <- evL$vectors[,(ncol(evL$vectors)-k+1):ncol(evL$vectors)]
 
 km <- kmeans(Z, centers=k, nstart=5)
@@ -42,7 +41,6 @@ V(g.authors)[cluster == 2]$color<-"dodgerblue"
 plot(g.authors)
 
 k   <- 3
-evL <- eigen(L_unnorm, symmetric=TRUE)
 Z   <- evL$vectors[,(ncol(evL$vectors)-k+1):ncol(evL$vectors)]
 
 km <- kmeans(Z, centers=k, nstart=5)
@@ -51,6 +49,35 @@ V(g.authors)[cluster == 1]$color<-"red"
 V(g.authors)[cluster == 2]$color<-"dodgerblue"
 V(g.authors)[cluster == 3]$color<-"yellow"
 plot(g.authors)
+
+
+D_neghalf<-1/sqrt(D)
+D_neghalf[D_neghalf==Inf]<-0
+L_normsym<-D_neghalf %*% L_unnorm %*% D_neghalf
+
+evL_sym <- eigen(L_normsym, symmetric=TRUE)
+
+k   <- 2
+Z   <- evL_sym$vectors[,(ncol(evL_sym$vectors)-k+1):ncol(evL_sym$vectors)]
+km <- kmeans(Z, centers=k, nstart=5)
+V(g.authors)$cluster<-km$cluster
+V(g.authors)[cluster == 1]$color<-"red"
+V(g.authors)[cluster == 2]$color<-"dodgerblue"
+plot(g.authors)
+
+k   <- 3
+Z   <- evL_sym$vectors[,(ncol(evL_sym$vectors)-k+1):ncol(evL_sym$vectors)]
+
+km <- kmeans(Z, centers=k, nstart=5)
+V(g.authors)$cluster<-km$cluster
+V(g.authors)[cluster == 1]$color<-"red"
+V(g.authors)[cluster == 2]$color<-"dodgerblue"
+V(g.authors)[cluster == 3]$color<-"yellow"
+setseed(123)
+plot(g.authors)
+
+
+
 
 
 
