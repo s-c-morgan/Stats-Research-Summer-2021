@@ -43,10 +43,28 @@ is.simple(g.authors)
 is.connected(g.authors)
 ```
 
+```{r}
+head(sort(graph.strength(g.authors), decreasing=TRUE),25)
+head(sort(degree(g.authors), decreasing=TRUE),25)
+```
 
+```{r}
+hist(graph.strength(g.authors), col="red", xlab="Vertex Strength", 
+     ylab="Frequency",
+     xlim = c(0,30), breaks = seq(0,30,by=1))
+hist(degree(g.authors), col="blue", xlab="Vertex Degree", 
+     ylab="Frequency", xlim = c(0,30), breaks = seq(0,30,by=1))
+```
+
+```{r}
+d.rh <- degree(g.authors)
+dd.rh <- degree.distribution(g.authors)
+d <- 1:max(d.rh)-1
+ind <- (dd.rh != 0)
+plot(d[ind], dd.rh[ind], log="xy", col="purple", xlab=c("Log-Degree"), ylab=c("Log-Intensity"), main="Log-Log Degree Distribution")
+```
 
 ## Creating the Necessary Laplacian Components
-
 
 
 Creating the weighted(W) and unweighted(A) adjacency matrices:
@@ -72,14 +90,18 @@ Creating the unnormalized Laplacian Matrix, $L_{un} = D - W$:
 L_unnorm<-D-W
 ```
 
-Creating the normalized symmetric Laplacian Matrix, $L = I - D^{-1/2}WD^{-1/2}$:
+Creating the normalized symmetric Laplacian Matrix, $L_{sym} = D^{-1/2}L_{un}D^{-1/2}$:
 ```{r, message=FALSE}
-L_normsym<-D-W
+D_neghalf<-1/sqrt(D)
+D_neghalf[D_neghalf==Inf]<-0
+L_sym<-D_neghalf %*% L_unnorm %*% D_neghalf
 ```
 
-Creating the normalized random walk Laplacian Matrix, $ L = I - D^{-1}W$
+Creating the normalized random walk Laplacian Matrix, $ L_{rw} = D^{-1}L_{un}$
 ```{r, message=FALSE}
-L_normrw<-D-W
+D_negone<-1/D
+D_negone[D_negone==Inf]<-0
+L_rw<-D_negone %*% L_unnorm
 ```
 
 ## Unnormalized Spectral Clustering
@@ -122,3 +144,84 @@ V(g.authors)[cluster == 3]$color<-"yellow"
 set.seed(123)
 plot(g.authors)
 ```
+
+## Normalized Spectral Clustering with the Symmetric graph Laplacian
+
+Calculating the eigenvectors of $L_{sym}$:
+```{r}
+evL_sym <- eigen(L_sym, symmetric=TRUE)
+```
+
+Creating a simple plot of the eigenvalues:
+```{r, message=FALSE, warning=FALSE}
+plot(1:10,rev(evL_sym$values)[1:10], log="y")
+abline(v=1.5, col="red", lty=3)
+
+```
+
+### Clustering with k=2 clusters:
+```{r}
+k   <- 2
+Z   <- evL_sym$vectors[,(ncol(evL_sym$vectors)-k+1):ncol(evL_sym$vectors)]
+
+
+km <- kmeans(Z, centers=k, nstart=5)
+V(g.authors)$cluster<-km$cluster
+V(g.authors)[cluster == 1]$color<-"red"
+V(g.authors)[cluster == 2]$color<-"dodgerblue"
+set.seed(123)
+plot(g.authors)
+```
+
+### Clustering with k=3 clusters:
+```{r}
+k   <- 3
+Z   <- evL_sym$vectors[,(ncol(evL_sym$vectors)-k+1):ncol(evL_sym$vectors)]
+
+km <- kmeans(Z, centers=k, nstart=5)
+V(g.authors)$cluster<-km$cluster
+V(g.authors)[cluster == 1]$color<-"red"
+V(g.authors)[cluster == 2]$color<-"dodgerblue"
+V(g.authors)[cluster == 3]$color<-"yellow"
+set.seed(123)
+plot(g.authors)
+```
+## Normalized Spectral Clustering with the Random Walk graph Laplacian
+
+Calculating the eigenvectors of $L_{sym}$:
+```{r}
+evL_rw <- eigen(L_rw, symmetric=FALSE)
+```
+
+Creating a simple plot of the eigenvalues:
+```{r, message=FALSE, warning=FALSE}
+plot(1:10,rev(evL_rw$values)[1:10])
+```
+
+### Clustering with k=2 clusters:
+```{r}
+k   <- 2
+Z   <- evL_rw$vectors[,(ncol(evL_rw$vectors)-k+1):ncol(evL_rw$vectors)]
+
+km <- kmeans(Z, centers=k, nstart=5)
+V(g.authors)$cluster<-km$cluster
+V(g.authors)[cluster == 1]$color<-"red"
+V(g.authors)[cluster == 2]$color<-"dodgerblue"
+set.seed(123)
+plot(g.authors)
+```
+
+### Clustering with k=3 clusters:
+```{r}
+k   <- 3
+Z   <- evL_rw$vectors[,(ncol(evL_rw$vectors)-k+1):ncol(evL_rw$vectors)]
+
+km <- kmeans(Z, centers=k, nstart=5)
+V(g.authors)$cluster<-km$cluster
+V(g.authors)[cluster == 1]$color<-"red"
+V(g.authors)[cluster == 2]$color<-"dodgerblue"
+V(g.authors)[cluster == 3]$color<-"yellow"
+set.seed(123)
+plot(g.authors)
+```
+
