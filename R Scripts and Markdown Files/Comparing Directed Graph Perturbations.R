@@ -232,20 +232,27 @@ calc_NMI_after_perturbation<-function(graph, clusters, mode, prob, nrewire){
     V(g_randomer)$cluster<-getClust(eigens$eigs, clusters)
     return(NMI(V(graph)$cluster,V(g_randomer)$cluster))
   }
+  if (mode == "balanceder"){
+    g_balanceder <- balanced_erdos_renyi_perturbation(graph, prob)
+    eigens<-getEigsRatiosAndValues(as.matrix(get.adjacency(g_balanceder)))
+    V(g_balanceder)$cluster<-getClust(eigens$eigs, clusters)
+    return(NMI(V(graph)$cluster,V(g_balanceder)$cluster))
+  }
 }
 
 
 
-f1<-function(x) calc_NMI_after_perturbation(g_truth,4,mode = "randomer",prob = x,0)
-f2<-function(x) calc_NMI_after_perturbation(g_truth,4,mode = "edgeprev",prob = x,0)
+f1<-function(x) calc_NMI_after_perturbation(g_truth,4,mode = "randomer",prob = x,1)
+f2<-function(x) calc_NMI_after_perturbation(g_truth,4,mode = "edgeprev",prob = x,1)
 f3<-function(x) calc_NMI_after_perturbation(g_truth,4,"degprev",0.1,x)
+f4<-function(x) calc_NMI_after_perturbation(g_truth,4,"balanceder",x,1)
 
 tibble(p = seq(0,1,0.01), NMI = sapply(seq(0,1,0.01),f1))%>%
   ggplot(mapping = aes(x=p, y=NMI))+
   geom_line()+
   xlim(0,1)
 
-tibble(p = seq(0,1,0.001), NMI = sapply(seq(0,1,0.001),f2))%>%
+tibble(p = seq(0,1,0.01), NMI = sapply(seq(0,1,0.01),f2))%>%
   ggplot(mapping = aes(x=p, y=NMI))+
   geom_line()+
   xlim(0,1)
@@ -253,3 +260,152 @@ tibble(p = seq(0,1,0.001), NMI = sapply(seq(0,1,0.001),f2))%>%
 tibble(p = seq(1,100,10), NMI = sapply(seq(1,100,1),f3))%>%
   ggplot(mapping = aes(x=p, y=NMI))+
   geom_line()
+
+f1_sim_results<-as.data.frame(sapply(seq(0,1,0.01), function(x) sapply(rep(x,50),f1)))
+f2_sim_results<-as.data.frame(sapply(seq(0,1,0.01), function(x) sapply(rep(x,50),f2)))
+f4_sim_results<-as.data.frame(sapply(seq(0,1,0.01), function(x) sapply(rep(x,10),f4)))
+
+
+tibble(p = seq(0,1,0.01), median = apply(f1_sim_results,2,median), q95 = apply(f1_sim_results, 2, function(x) quantile(x,0.95)),
+       q5 = apply(f1_sim_results, 2, function(x) quantile(x,0.05))) %>%
+  ggplot() + 
+  geom_line(mapping = aes(x=p, y=median, color = "Median across 50 simulations")) +
+  geom_line(mapping = aes(x=p, y=q95, color = "95th Percentile across 50 simulations")) +
+  geom_line(mapping = aes(x=p, y=q5, color = "5th Percentile across 50 simulations")) +
+  labs(title = "Effect of Erdos-Renyi Perturbations on Normalized Mutual Information Scores",
+       y = "Normalized Mutual Information",
+       x = "Probability")+
+  theme(legend.position = "bottom")
+
+tibble(p = seq(0,1,0.01), median = apply(f2_sim_results,2,median), q95 = apply(f2_sim_results, 2, function(x) quantile(x,0.95)),
+       q5 = apply(f2_sim_results, 2, function(x) quantile(x,0.05))) %>%
+  ggplot() + 
+  geom_line(mapping = aes(x=p, y=median, color = "Median across 50 simulations")) +
+  geom_line(mapping = aes(x=p, y=q95, color = "95th Percentile across 50 simulations")) +
+  geom_line(mapping = aes(x=p, y=q5, color = "5th Percentile across 50 simulations")) +
+  labs(title = "Effect of Edge-Preserving Perturbations on Normalized Mutual Information Scores",
+       y = "Normalized Mutual Information",
+       x = "Probability")+
+  theme(legend.position = "bottom")
+
+tibble(p = seq(0,1,0.01), median = apply(f4_sim_results,2,median), q95 = apply(f4_sim_results, 2, function(x) quantile(x,0.95)),
+       q5 = apply(f4_sim_results, 2, function(x) quantile(x,0.05))) %>%
+  ggplot() + 
+  geom_line(mapping = aes(x=p, y=median, color = "Median across 50 simulations")) +
+  geom_line(mapping = aes(x=p, y=q95, color = "95th Percentile across 50 simulations")) +
+  geom_line(mapping = aes(x=p, y=q5, color = "5th Percentile across 50 simulations")) +
+  labs(title = "Effect of Edge-Preserving Perturbations on Normalized Mutual Information Scores",
+       y = "Normalized Mutual Information",
+       x = "Probability")+
+  theme(legend.position = "bottom")
+  
+
+
+
+##How are eigenvalues perturbed by the three types of perturbation techniques
+set.seed(123)
+crossp<-rep(.01,9)
+B_crossp<-matrix(crossp, nrow = 3)
+diag(B_crossp)<- 0.90
+A_sbm<-genSBM(100,3,B_crossp)
+g_truth<-graph_from_adjacency_matrix(A_sbm$A, mode = "directed")
+V(g_truth)$cluster<-A_sbm$trueClust
+V(g_truth)[cluster == 1]$color<-"firebrick2"
+V(g_truth)[cluster == 2]$color<-"dodgerblue"
+V(g_truth)[cluster == 3]$color<-"gold1"
+layout <- layout.fruchterman.reingold(g_truth)
+plot(g_truth, layout=layout)
+
+eigens1<-getEigsRatiosAndValues(A_sbm$A)
+g_init<-g_truth
+
+g_Y_low<-erdos.renyi.game(100, .25, directed = TRUE)
+Y_low<-as.matrix(get.adjacency(g_Y_low))
+random_low<-abs(as.matrix(get.adjacency(g_init))-Y_low)
+g_random_low<-graph_from_adjacency_matrix(random_low, mode = "directed")
+reed_eigens_random_low<-getEigsRatiosAndValues(as.matrix(get.adjacency(g_random_low)))
+
+g_Y_mid<-erdos.renyi.game(100, .35, directed = TRUE)
+Y_mid<-as.matrix(get.adjacency(g_Y_mid))
+random_mid<-abs(as.matrix(get.adjacency(g_init))-Y_mid)
+g_random_mid<-graph_from_adjacency_matrix(random_mid, mode = "directed")
+reed_eigens_random_mid<-getEigsRatiosAndValues(as.matrix(get.adjacency(g_random_mid)))
+
+g_Y_hev<-erdos.renyi.game(100, .45, directed = TRUE)
+Y_hev<-as.matrix(get.adjacency(g_Y_hev))
+random_hev<-abs(as.matrix(get.adjacency(g_init))-Y_hev)
+g_random_hev<-graph_from_adjacency_matrix(random_hev, mode = "directed")
+reed_eigens_random_hev<-getEigsRatiosAndValues(as.matrix(get.adjacency(g_random_hev)))
+
+g_depresv_lt<-g_init %>% rewire(keeping_degseq(niter = vcount(g_init)*5))
+reed_eigens_dp_low<-getEigsRatiosAndValues(as.matrix(get.adjacency(g_depresv_lt)))
+
+g_depresv_med<-g_init %>% rewire(keeping_degseq(niter = vcount(g_init)*10))
+reed_eigens_dp_med<-getEigsRatiosAndValues(as.matrix(get.adjacency(g_depresv_med)))
+
+g_depresv_high<-g_init %>% rewire(keeping_degseq(niter = 2000))
+reed_eigens_dp_high<-getEigsRatiosAndValues(as.matrix(get.adjacency(g_depresv_high)))
+
+g_edgeprev_low_low<-g_init %>% rewire(each_edge(p = .05))
+reed_eigens_ep_low_low<-getEigsRatiosAndValues(as.matrix(get.adjacency(g_edgeprev_low_low)))
+
+g_edgeprev_low<-g_init %>% rewire(each_edge(p = .25))
+reed_eigens_ep_low<-getEigsRatiosAndValues(as.matrix(get.adjacency(g_edgeprev_low)))
+
+g_edgeprev_med<-g_init %>% rewire(each_edge(p = .35))
+reed_eigens_ep_med<-getEigsRatiosAndValues(as.matrix(get.adjacency(g_edgeprev_med)))
+
+g_edgeprev_hev<-g_init %>% rewire(each_edge(p = .45))
+reed_eigens_ep_high<-getEigsRatiosAndValues(as.matrix(get.adjacency(g_edgeprev_hev)))
+
+ggplot()+
+  geom_line(mapping = aes(x=1:10, y=rev(reed_eigens_random_hev$values)[1:10], color = "p =.45"))+
+  geom_line(mapping = aes(x=1:10, y=rev(reed_eigens_random_mid$values)[1:10], color = "p = .35"))+
+  geom_line(mapping = aes(x=1:10, y=rev(reed_eigens_random_low$values)[1:10], color = "p = .25"))+
+  geom_line(mapping = aes(x=1:10, y=rev(eigens1$values)[1:10], color = "No Perturbations"))+
+  labs(title = "Effect of Erdos-Renyi Random Perturbations on Eigenvalues of Reed's Laplacian",
+       y = "Eigenvalue magnitude",
+       x = "nth smallest Eigenvalue")+
+  theme(legend.position = "bottom")
+
+
+ggplot()+
+  geom_line(mapping = aes(x=1:10, y=rev(reed_eigens_dp_high$values)[1:10], color = "2000 Perturbations"))+
+  geom_line(mapping = aes(x=1:10, y=rev(reed_eigens_dp_med$values)[1:10], color = "1000 Perturbations"))+
+  geom_line(mapping = aes(x=1:10, y=rev(reed_eigens_dp_low$values)[1:10], color = "500 Perturbation"))+
+  geom_line(mapping = aes(x=1:10, y=rev(eigens1$values)[1:10], color = "No Perturbations"))+
+  labs(title = "Effect of Degree-Preserving Perturbations on Eigenvalues of Reed's Laplacian",
+       y = "Eigenvalue magnitude",
+       x = "nth smallest Eigenvalue")+
+  theme(legend.position = "bottom")
+
+ggplot()+
+  geom_line(mapping = aes(x=1:10, y=rev(reed_eigens_ep_high$values)[1:10], color = "p = .45"))+
+  geom_line(mapping = aes(x=1:10, y=rev(reed_eigens_ep_med$values)[1:10], color = "p = .35"))+
+  geom_line(mapping = aes(x=1:10, y=rev(reed_eigens_ep_low$values)[1:10], color = "p = .25"))+
+  geom_line(mapping = aes(x=1:10, y=rev(reed_eigens_ep_low_low$values)[1:10], color = "p = .05"))+
+  geom_line(mapping = aes(x=1:10, y=rev(eigens1$values)[1:10], color = "No Perturbations"))+
+  labs(title = "Effect of Edge-Preserving Perturbations on Eigenvalues of Reed's Laplacian",
+       y = "Eigenvalue magnitude",
+       x = "nth smallest Eigenvalue")+
+  theme(legend.position = "bottom")
+
+
+balanced_erdos_renyi_perturbation<-function(initial_graph, p){
+  ogm<-as.vector(get.adjacency(initial_graph))
+  onepos<-which(ogm==1)
+  zeropos<-which(ogm==0)
+  zeropos<-ifelse(zeropos %in% seq(1,vcount(initial_graph)^2,vcount(initial_graph)+1),NA,zeropos)
+  one_flipper<-sample(onepos, p*ecount(initial_graph))
+  zero_flipper<-sample(zeropos[!is.na(zeropos)], p*ecount(initial_graph))
+  for (n in one_flipper){ogm[n]<-0}
+  for (m in zero_flipper){ogm[m]<-1}
+  updated_ogm<-matrix(ogm,nrow=vcount(initial_graph))
+  g_perturb<-graph_from_adjacency_matrix(updated_ogm)
+  g_perturb
+}
+
+f4_sims<-c()
+for (i in 1:100){
+  f4_sims<-append(f4_sims,f4(.6))
+}
