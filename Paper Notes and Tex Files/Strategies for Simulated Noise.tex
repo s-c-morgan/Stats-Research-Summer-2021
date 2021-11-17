@@ -1,0 +1,34 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{mathtools}
+
+\title{Stats Template}
+\author{Carlyle Morgan}
+\date{May 2021}
+
+\begin{document}
+\section{Strategies for Generating Simulated Noise in Directed Network Data}
+\subsection{Assorted Strategies}
+
+\subsubsection{Out-Degree Preserving Perturbation}
+\textbf{Overview}: For $p \in [0,1]$, randomly select $100p\%$ of observed edges in the network. For each selected edge pair, re-assign the "receiver" node to some other random node provided that: 
+\begin{itemize}
+\item the new receiver node is not already an existing receiver of an edge from the origin node. 
+\item the new receiver node is not the origin node. \end{itemize}
+
+\textbf{Properties}: \begin{itemize} 
+	\item Probability of switching an a given directed edge to a non-edge: $p$ 
+	\item Probability of switching a non-connected edge to a directed one: $$(1-(1-p)^{O_i})\frac{1}{N-O_i}$$ where: 
+		\begin{itemize} 
+			\item For each non-existing edge pair, $(i,j)$, $i$ is the sender, $j$ is the receiver. 
+			\item Assume the sender has an outdegree of $O_i$. 								\begin{itemize} 
+					\item Probability that $i$ was among the selected edges to be switched is $(1-(1-p)^{O_i})$. 
+				\end{itemize} 
+			\item Probability of $E_{ij} = 1$ in the perturbed graph where 			\begin{itemize} $j$ was not among the $O_i$ original receivers. \item $j $ was selected by chance $\frac{1}{N-O_i}$. 							\end{itemize} 
+		\end{itemize} 
+\end{itemize}.
+
+
+
+\end{document}

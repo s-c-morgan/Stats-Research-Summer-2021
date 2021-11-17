@@ -217,11 +217,11 @@ calc_NMI_after_perturbation<-function(graph, clusters, mode, prob, nrewire){
     V(g_degprev)$cluster<-getClust(eigens$eigs, clusters)
     return(NMI(V(graph)$cluster,V(g_degprev)$cluster))
   }
-  if (mode == "edgeprev"){
-    g_edgeprev <- graph %>% rewire(each_edge(p = prob))
-    eigens<-getEigsRatiosAndValues(as.matrix(get.adjacency(g_edgeprev)))
-    V(g_edgeprev)$cluster<-getClust(eigens$eigs, clusters)
-    return(NMI(V(graph)$cluster,V(g_edgeprev)$cluster))
+  if (mode == "outdegprev"){
+    g_outdegprev <- graph %>% rewire(each_edge(p = prob))
+    eigens<-getEigsRatiosAndValues(as.matrix(get.adjacency(g_outdegprev)))
+    V(g_outdegprev)$cluster<-getClust(eigens$eigs, clusters)
+    return(NMI(V(graph)$cluster,V(g_outdegprev)$cluster))
   }
   if (mode == "randomer"){
     g_Y<-erdos.renyi.game(vcount(graph), prob, directed = TRUE)
@@ -243,7 +243,7 @@ calc_NMI_after_perturbation<-function(graph, clusters, mode, prob, nrewire){
 
 
 f1<-function(x) calc_NMI_after_perturbation(g_truth,4,mode = "randomer",prob = x,1)
-f2<-function(x) calc_NMI_after_perturbation(g_truth,4,mode = "edgeprev",prob = x,1)
+f2<-function(x) calc_NMI_after_perturbation(g_truth,4,mode = "outdegprev",prob = x,1)
 f3<-function(x) calc_NMI_after_perturbation(g_truth,4,"degprev",0.1,x)
 f4<-function(x) calc_NMI_after_perturbation(g_truth,4,"balanceder",x,1)
 
@@ -283,7 +283,7 @@ tibble(p = seq(0,1,0.01), median = apply(f2_sim_results,2,median), q95 = apply(f
   geom_line(mapping = aes(x=p, y=median, color = "Median across 50 simulations")) +
   geom_line(mapping = aes(x=p, y=q95, color = "95th Percentile across 50 simulations")) +
   geom_line(mapping = aes(x=p, y=q5, color = "5th Percentile across 50 simulations")) +
-  labs(title = "Effect of Edge-Preserving Perturbations on Normalized Mutual Information Scores",
+  labs(title = "Effect of Out-Degree-Preserving Perturbations on Normalized Mutual Information Scores",
        y = "Normalized Mutual Information",
        x = "Probability")+
   theme(legend.position = "bottom")
